@@ -23,11 +23,6 @@ SECONDS = int(os.getenv("SECONDS", "600"))
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
 
-    if len(message.text.split(" ")) > 1:
-        ad_msg = message.text.split(" ")[1]  
-    else:
-        ad_msg = None
-
     if not await present_user(user_id):
         try:
             await add_user(user_id)
@@ -35,48 +30,33 @@ async def start_command(client: Client, message: Message):
             print(f"Error adding user: {e}")
 
     if message.text.startswith("/start token_"):
-        user_id = message.from_user.id
         try:
             ad_msg = b64_to_str(message.text.split("/start token_")[1])
-            if int(user_id) != int(ad_msg.split(":")[0]):
-                await client.send_message(
-                    message.chat.id,
-                    "This Token Is Not For You \nor maybe you using 2 telegram apps if yes then uninstall this one...",
-                    reply_to_message_id=message.id,
+            ad_user_id, ad_time = map(int, ad_msg.split(":"))
+            
+            if user_id != ad_user_id:
+                await message.reply_text(
+                    "<b>ᴛʜɪꜱ ᴛᴏᴋᴇɴ ɪꜱ ɴᴏᴛ ꜰᴏʀ ʏᴏᴜ \nᴏʀ ᴍᴀʏʙᴇ ʏᴏᴜ ᴜꜱɪɴɢ 2 ᴛᴇʟᴇɢʀᴀᴍ ᴀᴘᴘꜱ ɪꜰ ʏᴇꜱ ᴛʜᴇɴ ᴜɴɪɴꜱᴛᴀʟʟ ᴛʜɪꜱ ᴏɴᴇ...</b>"
                 )
                 return
-            if int(ad_msg.split(":")[1]) < get_current_time():
-                await client.send_message(
-                    message.chat.id,
-                    "Token Expired Regenerate A New Token",
-                    reply_to_message_id=message.id,
-                )
+                
+            if ad_time < get_current_time():
+                await message.reply_text("<b>ᴛᴏᴋᴇɴ ᴇxᴘɪʀᴇᴅ ʀᴇɢᴇɴᴇʀᴀᴛᴇ ᴀ ɴᴇᴡ ᴛᴏᴋᴇɴ...</b>")
                 return
-            if int(ad_msg.split(":")[1]) > int(get_current_time() + 72000):
-                await client.send_message(
-                    message.chat.id,
-                    "Dont Try To Be Over Smart",
-                    reply_to_message_id=message.id,
-                )
+                
+            if ad_time > get_current_time() + 2880:
+                await message.reply_text("ᴅᴏɴ'ᴛ ᴛʀʏ ᴛᴏ ʙᴇ ᴏᴠᴇʀ ꜱᴍᴀʀᴛ")
                 return
+                
             query = {"user_id": user_id}
-            collection.update_one(
-                query, {"$set": {"time_out": int(ad_msg.split(":")[1])}}, upsert=True
+            user_links_collection.update_one(
+                query, {"$set": {"time_out": ad_time}}, upsert=True
             )
-            await client.send_message(
-                message.chat.id,
-                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 24 Hour",
-                reply_to_message_id=message.id,
+            await message.reply_text(
+                "<b>ᴄᴏɴɢʀᴀᴛᴜʟᴀᴛɪᴏɴꜱ! ᴀᴅꜱ ᴛᴏᴋᴇɴ ʀᴇꜰʀᴇꜱʜᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ!\n\nɪᴛ ᴡɪʟʟ ᴇxᴘɪʀᴇ ᴀꜰᴛᴇʀ 8 ʜᴏᴜʀ.</b>"
             )
             return
-        except BaseException:
-            await client.send_message(
-                message.chat.id,
-                "Invalid Token",
-                reply_to_message_id=message.id,
-            )
-            return
-
+        
     uid = message.from_user.id
     if uid not in ADMINS:
         result = collection.find_one({"user_id": uid})
