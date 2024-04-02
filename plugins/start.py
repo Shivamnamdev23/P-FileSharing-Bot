@@ -19,79 +19,110 @@ collection = tk["user_links"]
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
-@Client.on_message(filters.command("start") & filters.private)
+@Bot.on_message(filters.command('start') & filters.private)
 async def start_command(client: Client, message: Message):
-    try:
+    user_id = message.from_user.id
+
+    if len(message.text.split(" ")) > 1:
+        ad_msg = message.text.split(" ")[1]  
+    else:
+        ad_msg = None
+
+    if not await present_user(user_id):
+        try:
+            await add_user(user_id)
+        except Exception as e:
+            print(f"Error adding user: {e}")
+
+    if message.text.startswith("/start token_"):
         user_id = message.from_user.id
-        
-        if len(message.text.split(" ")) > 1:
-            ad_msg = message.text.split(" ")[1]  
-        else:
-            ad_msg = None
-            
-            if not await present_user(user_id):
-                try:
-                    await add_user(user_id)
-                except Exception as e:
-                    print(f"Error adding user: {e}")
-                    
-            if message.text.startswith("/start token_"):
-                try:
-                    ad_msg = b64_to_str(message.text.split("/start token_")[1])
-                    ad_user_id, ad_time = map(int, ad_msg.split(":"))
+        try:
+            ad_msg = b64_to_str(message.text.split("/start token_")[1])
+            if int(user_id) != int(ad_msg.split(":")[0]):
+                await client.send_message(
+                    message.chat.id,
+                    "This Token Is Not For You \nor maybe you using 2 telegram apps if yes then uninstall this one...",
+                    reply_to_message_id=message.id,
+                )
+                return
+            if int(ad_msg.split(":")[1]) < get_current_time():
+                await client.send_message(
+                    message.chat.id,
+                    "Token Expired Regenerate A New Token",
+                    reply_to_message_id=message.id,
+                )
+                return
+            if int(ad_msg.split(":")[1]) > int(get_current_time() + 72000):
+                await client.send_message(
+                    message.chat.id,
+                    "Dont Try To Be Over Smart",
+                    reply_to_message_id=message.id,
+                )
+                return
+            query = {"user_id": user_id}
+            collection.update_one(
+                query, {"$set": {"time_out": int(ad_msg.split(":")[1])}}, upsert=True
+            )
+            await client.send_message(
+                message.chat.id,
+                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 24 Hour",
+                reply_to_message_id=message.id,
+            )
+            return
+        except BaseException:
+            await client.send_message(
+                message.chat.id,
+                "Invalid Token",
+                reply_to_message_id=message.id,
+            )
+            return
 
-                    if user_id != ad_user_id:
-                        await message.reply_text(
-                            "<b>ᴛʜɪꜱ ᴛᴏᴋᴇɴ ɪꜱ ɴᴏᴛ ꜰᴏʀ ʏᴏᴜ \nᴏʀ ᴍᴀʏʙᴇ ʏᴏᴜ ᴜꜱɪɴɢ 2 ᴛᴇʟᴇɢʀᴀᴍ ᴀᴘᴘꜱ ɪꜰ ʏᴇꜱ ᴛʜᴇɴ ᴜɴɪɴꜱᴛᴀʟʟ ᴛʜɪꜱ ᴏɴᴇ...</b>"
-                        )
-                        return
-
-                    if ad_time < datetime.now().timestamp():
-                        await message.reply_text("Token Expired Regenerate A New Token")
-                        return
-
-                    if ad_time > datetime.now().timestamp() + 43200:
-                        await message.reply_text("Don't Try To Be Over Smart")
-                        return
-
-                    query = {"user_id": user_id}
-                    collection.update_one(
-                        query, {"$set": {"time_out": ad_time}}, upsert=True
-                    )
-                    await message.reply_text(
-                        "<b>ᴄᴏɴɢʀᴀᴛᴜʟᴀᴛɪᴏɴꜱ! ᴀᴅꜱ ᴛᴏᴋᴇɴ ʀᴇꜰʀᴇꜱʜᴇᴅ ꜱᴜᴄᴄᴇꜱꜰᴜʟʟʏ!\n\nɪᴛ ᴡɪʟʟ ᴇxᴘɪʀᴇ ᴀꜰᴛᴇʀ 8 ʜᴏᴜʀ.</b>"
-                    )
-                    return
-                    
-                    uid = message.from_user.id
-                    if uid not in ADMINS:
-                        result = collection.find_one({"user_id": uid})
-                        if result is None or int(result.get("time_out", 0)) < datetime.now().timestamp():
-                            temp_msg = await message.reply("Please wait...")
-                            ad_code = str_to_b64(f"{uid}:{str(datetime.now().timestamp() + 43200)}")
-                            ad_url = shorten_url(f"https://telegram.dog/{FileStream.username}?start=token_{ad_code}")
-
-                            await client.send_message(
-                                message.chat.id,
-                                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 8 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://t.me/jarrydow/2069'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(
-                                    [
-                                        [
-                                            InlineKeyboardButton("Click Here To Verify", url=ad_url)
-                                        ], [
-                                            InlineKeyboardButton('How to open link and verify', url='https://youtu.be/clgnNlBjm9c?si=PzhpIYzFr6DgGRTz')
-                                        ]
-                                    ]
-                                )
+    uid = message.from_user.id
+    if uid not in ADMINS:
+        result = collection.find_one({"user_id": uid})
+        if result is None:
+            temp_msg = await message.reply("Please wait...")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
+            ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
+            await client.send_message(
+                message.chat.id,
+                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
+                disable_web_page_preview = True,
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "Click Here To Refresh Token",
+                                url=ad_url,
                             )
-                            await temp_msg.delete()
-                            return
-                except Exception as e:
-                    print("Error:", e)
-
-    except Exception as e:
-        print("Error:", e)
+                        ]
+                    ]
+                ),
+                reply_to_message_id=message.id,
+            )
+            await temp_msg.delete()
+            return
+        elif int(result["time_out"]) < get_current_time():
+            temp_msg = await message.reply("Please wait...")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
+            ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
+            await client.send_message(
+                message.chat.id,
+                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad.",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "Click Here To Refresh Token",
+                                url=ad_url,
+                            )
+                        ]
+                    ]
+                ),
+                reply_to_message_id=message.id,
+            )
+            await temp_msg.delete()
+            return
         
     text = message.text
     
