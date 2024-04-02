@@ -126,7 +126,6 @@ async def start_command(client: Client, message: Message):
         
     text = message.text
     
-    # Handle start command with arguments
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
