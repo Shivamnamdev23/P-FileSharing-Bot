@@ -1,17 +1,12 @@
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
-
-
-
 import base64
+import pytz
+from datetime import datetime
+import requests
 import re
 import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
-from config import FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2, ADMINS
+from config import FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2, ADMINS, SHORT_URL, SHORT_API
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 
@@ -166,8 +161,51 @@ async def get_short_link(user, link):
 
 
 
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
+def get_readable_time(seconds: int) -> str:
+    count = 0
+    up_time = ""
+    time_list = []
+    time_suffix_list = ["s", "m", "h", "days"]
+    while count < 4:
+        count += 1
+        remainder, result = divmod(seconds, 60) if count < 3 else divmod(seconds, 24)
+        if seconds == 0 and remainder == 0:
+            break
+        time_list.append(int(result))
+        seconds = int(remainder)
+    hmm = len(time_list)
+    for x in range(hmm):
+        time_list[x] = str(time_list[x]) + time_suffix_list[x]
+    if len(time_list) == 4:
+        up_time += f"{time_list.pop()}, "
+    time_list.reverse()
+    up_time += ":".join(time_list)
+    return up_time
+
+
+
+def str_to_b64(__str: str) -> str:
+    str_bytes = __str.encode('ascii')
+    bytes_b64 = standard_b64encode(str_bytes)
+    b64 = bytes_b64.decode('ascii')
+    return b64
+
+def b64_to_str(b64: str) -> str:
+    bytes_b64 = b64.encode('ascii')
+    bytes_str = standard_b64decode(bytes_b64)
+    __str = bytes_str.decode('ascii')
+    return __str
+
+def get_current_time():
+    tz = pytz.timezone('Asia/Kolkata')
+    return int(datetime.now(tz).timestamp())
+
+def get_readable_time(seconds):
+    dt = datetime.fromtimestamp(int(seconds))
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+def shorten_url(url):
+    site_url = f"{SHORT_URL}api?api={SHORT_API}&url={url}&format=text"
+    #site_url = f"{url}"
+    return str(requests.get(site_url).text)
+    #return site_url
