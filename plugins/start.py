@@ -47,7 +47,7 @@ async def start_command(client: Client, message: Message):
                 return
                 
             query = {"user_id": user_id}
-            user_links_collection.update_one(
+            collection.update_one(
                 query, {"$set": {"time_out": ad_time}}, upsert=True
             )
             await message.reply_text(
