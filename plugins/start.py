@@ -19,10 +19,17 @@ collection = tk["user_links"]
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
+client = pymongo.MongoClient("mongodb+srv://FileStoreP:FileStoreP@cluster0.mkmkjl8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+tk = client["terabox"]
+collection = tk["user_links"]
+
 @Bot.on_message(filters.command('start') & filters.private)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
-
+    if len(message.text.split(" ")) > 1:
+        ad_msg = message.text.split(" ")[1]  
+    else:
+        ad_msg = None
     if not await present_user(user_id):
         try:
             await add_user(user_id)
