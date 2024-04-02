@@ -15,24 +15,7 @@ SECONDS = int(os.getenv("SECONDS", "600"))
 @Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     try:
-        user_id = message.from_user.id
-        if not await present_user(user_id):
-            await add_user(user_id)
-        await client.get_chat_member(FSUB_CHANNEL, user_id)
-    except UserNotParticipant:
-        f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
-        buttons = [
-            [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
-        ]
-        if len(message.command) > 1:
-            buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
-
-        await message.reply(
-            f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-        return
-    
+        
     text = message.text
     
     # Handle start command with arguments
