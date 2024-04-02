@@ -1,4 +1,5 @@
 import os
+import pymongo
 import asyncio
 from pyrogram import Client, filters, __version__
 from pyrogram.enums import ParseMode
@@ -7,14 +8,76 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
 from pyrogram.errors import UserNotParticipant
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FSUB_CHANNEL
-from helper_func import subscribed, encode, decode, get_messages
+from helper_func import *
 from database.database import add_user, del_user, full_userbase, present_user
+from datetime import datetime
+
+client = pymongo.MongoClient("mongodb+srv://FileStoreP:FileStoreP@cluster0.mkmkjl8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+tk = client["terabox"]
+collection = tk["user_links"]
+
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
-@Bot.on_message(filters.command("start") & filters.private)
+@Client.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     try:
+        user_id = message.from_user.id
+        if message.text.startswith("/start token_"):
+            try:
+                ad_msg = b64_to_str(message.text.split("/start token_")[1])
+                ad_user_id, ad_time = map(int, ad_msg.split(":"))
+
+                if user_id != ad_user_id:
+                    await message.reply_text(
+                        "<b>ᴛʜɪꜱ ᴛᴏᴋᴇɴ ɪꜱ ɴᴏᴛ ꜰᴏʀ ʏᴏᴜ \nᴏʀ ᴍᴀʏʙᴇ ʏᴏᴜ ᴜꜱɪɴɢ 2 ᴛᴇʟᴇɢʀᴀᴍ ᴀᴘᴘꜱ ɪꜰ ʏᴇꜱ ᴛʜᴇɴ ᴜɴɪɴꜱᴛᴀʟʟ ᴛʜɪꜱ ᴏɴᴇ...</b>"
+                    )
+                    return
+
+                if ad_time < datetime.now().timestamp():
+                    await message.reply_text("Token Expired Regenerate A New Token")
+                    return
+
+                if ad_time > datetime.now().timestamp() + 43200:
+                    await message.reply_text("Don't Try To Be Over Smart")
+                    return
+
+                query = {"user_id": user_id}
+                collection.update_one(
+                    query, {"$set": {"time_out": ad_time}}, upsert=True
+                )
+                await message.reply_text(
+                    "<b>ᴄᴏɴɢʀᴀᴛᴜʟᴀᴛɪᴏɴꜱ! ᴀᴅꜱ ᴛᴏᴋᴇɴ ʀᴇꜰʀᴇꜱʜᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ!\n\nɪᴛ ᴡɪʟʟ ᴇxᴘɪʀᴇ ᴀꜰᴛᴇʀ 8 ʜᴏᴜʀ.</b>"
+                )
+                uid = message.from_user.id
+                if uid not in ADMINS:
+                    result = collection.find_one({"user_id": uid})
+                    if result is None or int(result.get("time_out", 0)) < datetime.now().timestamp():
+                        temp_msg = await message.reply("Please wait...")
+                        ad_code = str_to_b64(f"{uid}:{str(datetime.now().timestamp() + 43200)}")
+                        ad_url = shorten_url(f"https://telegram.dog/{FileStream.username}?start=token_{ad_code}")
+                        
+                        await client.send_message(
+                            message.chat.id,
+                            f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 8 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://t.me/jarrydow/2069'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
+                            disable_web_page_preview=True,
+                            reply_markup=InlineKeyboardMarkup(
+                                [
+                                    [
+                                        InlineKeyboardButton("Click Here To Verify", url=ad_url)
+                                    ], [
+                                        InlineKeyboardButton('How to open link and verify', url='https://youtu.be/clgnNlBjm9c?si=PzhpIYzFr6DgGRTz')
+                                    ]
+                                ]
+                            )
+                        )
+                        await temp_msg.delete()
+                        return
+            except Exception as e:
+                print("Error:", e)
+
+    except Exception as e:
+        print("Error:", e)
         
     text = message.text
     
