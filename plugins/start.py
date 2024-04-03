@@ -12,10 +12,6 @@ from helper_func import *
 from database.database import add_user, del_user, full_userbase, present_user
 from datetime import datetime
 
-client = pymongo.MongoClient("mongodb+srv://FileStoreP:FileStoreP@cluster0.mkmkjl8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-tk = client["terabox"]
-collection = tk["user_links"]
-
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
