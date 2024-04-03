@@ -61,8 +61,8 @@ logging.basicConfig(
 )
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
-SHORT_URL = os.environ.get("SHORT_URL", "https://earnpro.in/") # Must start with "https://" and ends with "/"
-SHORT_API = os.environ.get("SHORT_API", "3c591f5288f335105af7129cdf7a3e8a392d90e5")
+SHORT_URL = os.environ.get("SHORT_URL", "https://publicearn.com/") # Must start with "https://" and ends with "/"
+SHORT_API = os.environ.get("SHORT_API", "5b63204f2214329cf36c9e2add4de92d52d88d67")
 
 def LOGGER(name: str) -> logging.Logger:
     return logging.getLogger(name)
