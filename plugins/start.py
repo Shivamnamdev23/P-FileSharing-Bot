@@ -41,14 +41,14 @@ async def start_command(client: Client, message: Message):
     except UserNotParticipant:
             f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
             buttons = [
-                [InlineKeyboardButton("⛔ Join Channel 1 ⛔", url=f_link)]
+                [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
             ]
             
             if len(message.command) > 1:
                 buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://t.me/{client.username}?start={message.command[1]}")])
 
             mks = await message.reply(
-                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get the movie, otherwise you will not get it.\n\nClick join channel button 👇</b>",
+                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get the video, otherwise you will not get it.\n\nClick join channel button 👇</b>",
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
             return
@@ -71,7 +71,7 @@ async def start_command(client: Client, message: Message):
                     reply_to_message_id=message.id,
                 )
                 return
-            if int(ad_msg.split(":")[1]) > int(get_current_time() + 2880):
+            if int(ad_msg.split(":")[1]) > int(get_current_time() + 43200):
                 await client.send_message(
                     message.chat.id,
                     "Dont Try To Be Over Smart",
@@ -84,7 +84,7 @@ async def start_command(client: Client, message: Message):
             )
             await client.send_message(
                 message.chat.id,
-                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 8 Hour",
+                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 12 Hour",
                 reply_to_message_id=message.id,
             )
             return
@@ -101,11 +101,11 @@ async def start_command(client: Client, message: Message):
         result = collection.find_one({"user_id": uid})
         if result is None:
             temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 2880)}")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 43200)}")
             ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
             await client.send_message(
                 message.chat.id,
-                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 8 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
+                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 12 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
                 disable_web_page_preview = True,
                 reply_markup=InlineKeyboardMarkup(
                     [
@@ -122,11 +122,11 @@ async def start_command(client: Client, message: Message):
             return
         elif int(result["time_out"]) < get_current_time():
             temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 2880)}")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 43200)}")
             ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
             await client.send_message(
                 message.chat.id,
-                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad.",
+                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 12 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad.",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
@@ -183,13 +183,11 @@ async def start_command(client: Client, message: Message):
             return
 
         await temp_msg.delete()
+        copied_messages = []
 
         for msg in messages:
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name,
-                )
+            if bool(CUSTOM_CAPTION) and (bool(msg.document) or bool(msg.video)):
+                caption = CUSTOM_CAPTION.format(previouscaption=msg.caption, filename=msg.document.file_name if msg.document else msg.video.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -199,41 +197,26 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                asd = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT,
-                )
-                l = await asd.reply("<b>🗑 ᴛʜɪꜱ ꜰɪʟᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ɪɴ 10 ᴍɪɴᴜᴛᴇꜱ, ꜱᴏ ꜰᴏʀᴡᴀʀᴅ ɪᴛ ᴛᴏ ʏᴏᴜʀ ꜱᴀᴠᴇᴅ ᴍᴇꜱꜱᴀɢᴇꜱ.</b>",quote=True)
-                await asyncio.sleep(600)
-                await asd.delete()
-                await asyncio.sleep(600)
-                await l.delete()
-                await asyncio.sleep(0.5)
+                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                copied_messages.append(f)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                mks = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT,
-                )
-                k = await mks.reply("<b>🗑 ᴛʜɪꜱ ꜰɪʟᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ɪɴ 10 ᴍɪɴᴜᴛᴇꜱ, ꜱᴏ ꜰᴏʀᴡᴀʀᴅ ɪᴛ ᴛᴏ ʏᴏᴜʀ ꜱᴀᴠᴇᴅ ᴍᴇꜱꜱᴀɢᴇꜱ.</b>",quote=True)
-                await asyncio.sleep(600)
-                await mks.delete()
-                await asyncio.sleep(600)
-                await k.delete()
+                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                copied_messages.append(f)
             except:
                 pass
+        k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 10 minutes (Due to Pornography  issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
+        await asyncio.sleep(600)
+        for f in copied_messages:
+            await f.delete()
+        await k.edit_text("Your video is successfully deleted!")
+        return
 
     else:
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
+                    InlineKeyboardButton("💋🔞 Post No Wali Videos 💋🔞", url="https://t.me/+5VVecKFC0FQyZGJl")
                 ]
             ]
         )
