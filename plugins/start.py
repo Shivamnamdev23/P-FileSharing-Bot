@@ -19,17 +19,21 @@ collection = tk["user_links"]
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
-client = pymongo.MongoClient("mongodb+srv://FileStoreP:FileStoreP@cluster0.mkmkjl8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-tk = client["terabox"]
-collection = tk["user_links"]
+client = pymongo.MongoClient(DB_URI)
+db = client["terabox"]
+collection = db["user_links"]
+collection_xxx = db["user"]
+
 
 @Bot.on_message(filters.command('start') & filters.private)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
+
     if len(message.text.split(" ")) > 1:
         ad_msg = message.text.split(" ")[1]  
     else:
         ad_msg = None
+
     if not await present_user(user_id):
         try:
             await add_user(user_id)
@@ -37,82 +41,144 @@ async def start_command(client: Client, message: Message):
             print(f"Error adding user: {e}")
 
     if message.text.startswith("/start token_"):
+        user_id = message.from_user.id
         try:
             ad_msg = b64_to_str(message.text.split("/start token_")[1])
-            ad_user_id, ad_time = map(int, ad_msg.split(":"))
-            
-            if user_id != ad_user_id:
-                await message.reply_text("<b>This token is not for you or maybe you're using 2 Telegram apps. If yes, then uninstall this one...</b>")
+            if int(user_id) != int(ad_msg.split(":")[0]):
+                await client.send_message(
+                    message.chat.id,
+                    "This Token Is Not For You \nor maybe you using 2 telegram apps if yes then uninstall this one...",
+                    reply_to_message_id=message.id,
+                )
                 return
-                
-            if ad_time < get_current_time():
-                await message.reply_text("<b>Token expired. Please regenerate a new token...</b>")
+            if int(ad_msg.split(":")[1]) < get_current_time():
+                await client.send_message(
+                    message.chat.id,
+                    "Token Expired Regenerate A New Token",
+                    reply_to_message_id=message.id,
+                )
                 return
-                
-            if ad_time > get_current_time() + 2880:
-                await message.reply_text("Don't try to be over smart.")
+            if int(ad_msg.split(":")[1]) > int(get_current_time() + 72000):
+                await client.send_message(
+                    message.chat.id,
+                    "Dont Try To Be Over Smart",
+                    reply_to_message_id=message.id,
+                )
                 return
-                
             query = {"user_id": user_id}
             collection.update_one(
-                query, {"$set": {"time_out": ad_time}}, upsert=True
+                query, {"$set": {"time_out": int(ad_msg.split(":")[1])}}, upsert=True
             )
-            await message.reply_text(
-                "<b>Congratulations! Ads token refreshed successfully! It will expire after 8 hours.</b>"
+            await client.send_message(
+                message.chat.id,
+                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 24 Hour",
+                reply_to_message_id=message.id,
             )
             return
-        except:
-            await message.reply_text("<b>Invalid token</b>")
+        except BaseException:
+            await client.send_message(
+                message.chat.id,
+                "Invalid Token",
+                reply_to_message_id=message.id,
+            )
             return
-        
-    if user_id not in ADMINS:
-        result = collection.find_one({"user_id": user_id})
-        if result is None or int(result.get("time_out", 0)) < get_current_time():
+
+    uid = message.from_user.id
+    if uid not in ADMINS:
+        result = collection.find_one({"user_id": uid})
+        if result is None:
             temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{user_id}:{str(get_current_time() + 72000)}")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
             ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
             await client.send_message(
                 message.chat.id,
-                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hours \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hours after passing the ad. \n\nWatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
-                disable_web_page_preview=True,
+                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
+                disable_web_page_preview = True,
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("Click Here To Refresh Token", url=ad_url)]]
-                )
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "Click Here To Refresh Token",
+                                url=ad_url,
+                            )
+                        ]
+                    ]
+                ),
+                reply_to_message_id=message.id,
             )
             await temp_msg.delete()
             return
+        elif int(result["time_out"]) < get_current_time():
+            temp_msg = await message.reply("Please wait...")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
+            ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
+            await client.send_message(
+                message.chat.id,
+                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad.",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "Click Here To Refresh Token",
+                                url=ad_url,
+                            )
+                        ]
+                    ]
+                ),
+                reply_to_message_id=message.id,
+            )
+            await temp_msg.delete()
+            return
+            
 
     text = message.text
-    
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
-            string = await decode(base64_string)
-            argument = string.split("-")
-            
-            if len(argument) == 3:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
-                ids = list(range(start, end + 1))
-            elif len(argument) == 2:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            else:
-                return
         except:
             return
-        
+        string = await decode(base64_string)
+        argument = string.split("-")
+
+        if len(argument) == 3:
+            try:
+                start = int(int(argument[1]) / abs(client.db_channel.id))
+                end = int(int(argument[2]) / abs(client.db_channel.id))
+            except:
+                return
+
+            if start <= end:
+                ids = range(start, end + 1)
+            else:
+                ids = []
+                i = start
+                while True:
+                    ids.append(i)
+                    i -= 1
+                    if i < end:
+                        break
+        elif len(argument) == 2:
+            try:
+                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+            except:
+                return
+
         temp_msg = await message.reply("Please wait...")
+
         try:
             messages = await get_messages(client, ids)
         except:
             await message.reply_text("Something went wrong..!")
             return
-        
+
         await temp_msg.delete()
-        copied_messages = []
+
         for msg in messages:
-            if bool(CUSTOM_CAPTION) and (bool(msg.document) or bool(msg.video)):
-                caption = CUSTOM_CAPTION.format(previouscaption=msg.caption, filename=msg.document.file_name if msg.document else msg.video.file_name)
+            if bool(CUSTOM_CAPTION) & bool(msg.document):
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name,
+                )
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -122,30 +188,37 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                copied_messages.append(f)
+                await msg.copy(
+                    chat_id=message.from_user.id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT,
+                )
+                await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                copied_messages.append(f)
+                await msg.copy(
+                    chat_id=message.from_user.id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT,
+                )
             except:
                 pass
-            
-        k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 10 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
-        await asyncio.sleep(600)
-        for f in copied_messages:
-            await f.delete()
-        await k.edit_text("Your video/file is successfully deleted!")
+
+        asyncio.create_task(auto_delete_files(messages))
         return
-    
-    # Handle start command without arguments
+
     else:
-        reply_markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Source Code", url="https://t.me/")],
-            [InlineKeyboardButton("😊 About Me", callback_data="about"),
-             InlineKeyboardButton("🔒 Close", callback_data="close")]
-        ])
-        
+        reply_markup = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("🔒 Close", callback_data="close")
+                ]
+            ]
+        )
         await message.reply_text(
             text=START_MSG.format(
                 first=message.from_user.first_name,
@@ -159,7 +232,6 @@ async def start_command(client: Client, message: Message):
             quote=True
         )
         return
-
 
     
 #=====================================================================================##
