@@ -8,7 +8,7 @@ API_HASH = os.environ.get("API_HASH", "9c58142ef6abed28808a50e3e983c39c")
 FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "-1001903429872"))
 OWNER = os.environ.get("OWNER", "") #Owner username
 OWNER_ID = int(os.environ.get("OWNER_ID", "6249148586"))
-DB_URL = os.environ.get("DB_URL", "mongodb+srv://FileStoreP:FileStoreP@cluster0.mkmkjl8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DB_URL = os.environ.get("DB_URL", "mongodb+srv://aduluser:aduluser@cluster0.5rlhjgi.mongodb.net/?retryWrites=true&w=majority")
 DB_NAME = os.environ.get("DB_NAME", "madflixbotz")
 
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001980010837"))
