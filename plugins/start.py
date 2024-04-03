@@ -112,7 +112,7 @@ async def start_command(client: Client, message: Message):
                         [
                             InlineKeyboardButton("Click Here To Verify", url=ad_url)
                         ],[
-                            InlineKeyboardButton('How to open link and verify', url='https://youtu.be/zPz5czwOE04?si=2sYO2CHy8ZoG3v9C')
+                            InlineKeyboardButton('How to open link and verify', url='https://t.me/jarrydow/2074')
                         ]
                     ]
                 ),
@@ -132,7 +132,7 @@ async def start_command(client: Client, message: Message):
                         [
                             InlineKeyboardButton("Click Here To Verify", url=ad_url)
                         ],[
-                            InlineKeyboardButton('How to open link and verify', url='https://youtu.be/zPz5czwOE04?si=2sYO2CHy8ZoG3v9C')
+                            InlineKeyboardButton('How to open link and verify', url='https://t.me/jarrydow/2074')
                         ]
                     ]
                 ),
