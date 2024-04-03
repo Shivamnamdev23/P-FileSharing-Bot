@@ -21,12 +21,12 @@ collection = db["user_links"]
 collection_xxx = db["user"]
 
 
-@Bot.on_message(filters.command('start') & filters.private)
+@Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
 
     if len(message.text.split(" ")) > 1:
-        ad_msg = message.text.split(" ")[1]  
+        ad_msg = message.text.split(" ")[1]
     else:
         ad_msg = None
 
@@ -35,6 +35,23 @@ async def start_command(client: Client, message: Message):
             await add_user(user_id)
         except Exception as e:
             print(f"Error adding user: {e}")
+
+    try:
+        await client.get_chat_member(FSUB_CHANNEL, user_id)
+    except UserNotParticipant:
+            f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
+            buttons = [
+                [InlineKeyboardButton("⛔ Join Channel 1 ⛔", url=f_link)]
+            ]
+            
+            if len(message.command) > 1:
+                buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://t.me/{client.username}?start={message.command[1]}")])
+
+            mks = await message.reply(
+                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get the movie, otherwise you will not get it.\n\nClick join channel button 👇</b>",
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+            return
 
     if message.text.startswith("/start token_"):
         user_id = message.from_user.id
@@ -54,7 +71,7 @@ async def start_command(client: Client, message: Message):
                     reply_to_message_id=message.id,
                 )
                 return
-            if int(ad_msg.split(":")[1]) > int(get_current_time() + 72000):
+            if int(ad_msg.split(":")[1]) > int(get_current_time() + 2880):
                 await client.send_message(
                     message.chat.id,
                     "Dont Try To Be Over Smart",
@@ -67,7 +84,7 @@ async def start_command(client: Client, message: Message):
             )
             await client.send_message(
                 message.chat.id,
-                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 24 Hour",
+                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 8 Hour",
                 reply_to_message_id=message.id,
             )
             return
@@ -84,19 +101,18 @@ async def start_command(client: Client, message: Message):
         result = collection.find_one({"user_id": uid})
         if result is None:
             temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 2880)}")
             ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
             await client.send_message(
                 message.chat.id,
-                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
+                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 8 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
                 disable_web_page_preview = True,
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
-                            InlineKeyboardButton(
-                                "Click Here To Refresh Token",
-                                url=ad_url,
-                            )
+                            InlineKeyboardButton("Click Here To Verify", url=ad_url)
+                        ],[
+                            InlineKeyboardButton('How to open link and verify', url='https://youtu.be/zPz5czwOE04?si=2sYO2CHy8ZoG3v9C')
                         ]
                     ]
                 ),
@@ -106,18 +122,17 @@ async def start_command(client: Client, message: Message):
             return
         elif int(result["time_out"]) < get_current_time():
             temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 72000)}")
+            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 2880)}")
             ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
             await client.send_message(
                 message.chat.id,
-                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 24 hour after passing the ad.",
+                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 24 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad.",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
-                            InlineKeyboardButton(
-                                "Click Here To Refresh Token",
-                                url=ad_url,
-                            )
+                            InlineKeyboardButton("Click Here To Verify", url=ad_url)
+                        ],[
+                            InlineKeyboardButton('How to open link and verify', url='https://youtu.be/zPz5czwOE04?si=2sYO2CHy8ZoG3v9C')
                         ]
                     ]
                 ),
@@ -184,28 +199,35 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                await msg.copy(
+                asd = await msg.copy(
                     chat_id=message.from_user.id,
                     caption=caption,
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT,
                 )
+                l = await asd.reply("<b>🗑 ᴛʜɪꜱ ꜰɪʟᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ɪɴ 10 ᴍɪɴᴜᴛᴇꜱ, ꜱᴏ ꜰᴏʀᴡᴀʀᴅ ɪᴛ ᴛᴏ ʏᴏᴜʀ ꜱᴀᴠᴇᴅ ᴍᴇꜱꜱᴀɢᴇꜱ.</b>",quote=True)
+                await asyncio.sleep(600)
+                await asd.delete()
+                await asyncio.sleep(600)
+                await l.delete()
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                await msg.copy(
+                mks = await msg.copy(
                     chat_id=message.from_user.id,
                     caption=caption,
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT,
                 )
+                k = await mks.reply("<b>🗑 ᴛʜɪꜱ ꜰɪʟᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ɪɴ 10 ᴍɪɴᴜᴛᴇꜱ, ꜱᴏ ꜰᴏʀᴡᴀʀᴅ ɪᴛ ᴛᴏ ʏᴏᴜʀ ꜱᴀᴠᴇᴅ ᴍᴇꜱꜱᴀɢᴇꜱ.</b>",quote=True)
+                await asyncio.sleep(600)
+                await mks.delete()
+                await asyncio.sleep(600)
+                await k.delete()
             except:
                 pass
-
-        asyncio.create_task(auto_delete_files(messages))
-        return
 
     else:
         reply_markup = InlineKeyboardMarkup(
