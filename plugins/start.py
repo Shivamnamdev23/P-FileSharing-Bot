@@ -15,7 +15,7 @@ from datetime import datetime
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "600"))
 
-client = pymongo.MongoClient(DB_URL)
+client = pymongo.MongoClient(mongodb+srv://nejot19048:WHGWBqKXk9sCn4CP@cluster0.s6xvqjz.mongodb.net/?retryWrites=true&w=majority)
 db = client["terabox"]
 collection = db["user_links"]
 collection_xxx = db["user"]
