@@ -4,7 +4,7 @@ import base64
 import re
 import asyncio
 from pyrogram import filters
-from config import FORCE_SUB_CHANNEL, ADMINS, SECOND_FORCE_SUB_CHANNEL
+from config import FORCE_SUB_CHANNEL, ADMINS
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 from base64 import standard_b64encode, standard_b64decode
