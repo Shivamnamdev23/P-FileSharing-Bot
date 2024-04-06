@@ -13,178 +13,59 @@ from database.database import add_user, del_user, full_userbase, present_user
 from datetime import datetime
 
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
-SECONDS = int(os.getenv("SECONDS", "600"))
-
-client = pymongo.MongoClient("mongodb+srv://nejot19048:WHGWBqKXk9sCn4CP@cluster0.s6xvqjz.mongodb.net/test?retryWrites=true&w=majority")
-db = client["terabox"]
-collection = db["user_links"]
-collection_xxx = db["user"]
+SECONDS = int(os.getenv("SECONDS", "1800"))
 
 
 @Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
-    user_id = message.from_user.id
-
-    if len(message.text.split(" ")) > 1:
-        ad_msg = message.text.split(" ")[1]
-    else:
-        ad_msg = None
-
-    if not await present_user(user_id):
-        try:
-            await add_user(user_id)
-        except Exception as e:
-            print(f"Error adding user: {e}")
-
     try:
+        user_id = message.from_user.id
+        if not await present_user(user_id):
+            await add_user(user_id)
         await client.get_chat_member(FSUB_CHANNEL, user_id)
     except UserNotParticipant:
-            f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
-            buttons = [
-                [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
-            ]
-            
-            if len(message.command) > 1:
-                buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://t.me/{client.username}?start={message.command[1]}")])
+        f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
+        buttons = [
+            [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
+        ]
+        if len(message.command) > 1:
+            buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
 
-            mks = await message.reply(
-                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get the video, otherwise you will not get it.\n\nClick join channel button 👇</b>",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-            return
-
-    if message.text.startswith("/start token_"):
-        user_id = message.from_user.id
-        try:
-            ad_msg = b64_to_str(message.text.split("/start token_")[1])
-            if int(user_id) != int(ad_msg.split(":")[0]):
-                await client.send_message(
-                    message.chat.id,
-                    "This Token Is Not For You \nor maybe you using 2 telegram apps if yes then uninstall this one...",
-                    reply_to_message_id=message.id,
-                )
-                return
-            if int(ad_msg.split(":")[1]) < get_current_time():
-                await client.send_message(
-                    message.chat.id,
-                    "Token Expired Regenerate A New Token",
-                    reply_to_message_id=message.id,
-                )
-                return
-            if int(ad_msg.split(":")[1]) > int(get_current_time() + 43200):
-                await client.send_message(
-                    message.chat.id,
-                    "Dont Try To Be Over Smart",
-                    reply_to_message_id=message.id,
-                )
-                return
-            query = {"user_id": user_id}
-            collection.update_one(
-                query, {"$set": {"time_out": int(ad_msg.split(":")[1])}}, upsert=True
-            )
-            await client.send_message(
-                message.chat.id,
-                "Congratulations! Ads token refreshed successfully! \n\nIt will expire after 12 Hour",
-                reply_to_message_id=message.id,
-            )
-            return
-        except BaseException:
-            await client.send_message(
-                message.chat.id,
-                "Invalid Token",
-                reply_to_message_id=message.id,
-            )
-            return
-
-    uid = message.from_user.id
-    if uid not in ADMINS:
-        result = collection.find_one({"user_id": uid})
-        if result is None:
-            temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 43200)}")
-            ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
-            await client.send_message(
-                message.chat.id,
-                f"Hey 💕 <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 12 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad. \n\nwatch video tutorial if you're facing issue <a href='https://telegram.me/'>Click Here</a> \n\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b>",
-                disable_web_page_preview = True,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton("Click Here To Verify", url=ad_url)
-                        ],[
-                            InlineKeyboardButton('How to open link and verify', url='https://t.me/jarrydow/2074')
-                        ]
-                    ]
-                ),
-                reply_to_message_id=message.id,
-            )
-            await temp_msg.delete()
-            return
-        elif int(result["time_out"]) < get_current_time():
-            temp_msg = await message.reply("Please wait...")
-            ad_code = str_to_b64(f"{uid}:{str(get_current_time() + 43200)}")
-            ad_url = shorten_url(f"https://telegram.dog/{client.username}?start=token_{ad_code}")
-            await client.send_message(
-                message.chat.id,
-                f"Hey <b>{message.from_user.mention}</b> \n\nYour Ads token is expired, refresh your token and try again. \n\n<b>Token Timeout:</b> 12 hour \n\n<b>What is token?</b> \nThis is an ads token. If you pass 1 ad, you can use the bot for 8 hour after passing the ad.",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton("Click Here To Verify", url=ad_url)
-                        ],[
-                            InlineKeyboardButton('How to open link and verify', url='https://t.me/jarrydow/2074')
-                        ]
-                    ]
-                ),
-                reply_to_message_id=message.id,
-            )
-            await temp_msg.delete()
-            return
-            
-
+        await message.reply(
+            f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+        return
+    
     text = message.text
+    
+    # Handle start command with arguments
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
-        except:
-            return
-        string = await decode(base64_string)
-        argument = string.split("-")
-
-        if len(argument) == 3:
-            try:
+            string = await decode(base64_string)
+            argument = string.split("-")
+            
+            if len(argument) == 3:
                 start = int(int(argument[1]) / abs(client.db_channel.id))
                 end = int(int(argument[2]) / abs(client.db_channel.id))
-            except:
-                return
-
-            if start <= end:
-                ids = range(start, end + 1)
-            else:
-                ids = []
-                i = start
-                while True:
-                    ids.append(i)
-                    i -= 1
-                    if i < end:
-                        break
-        elif len(argument) == 2:
-            try:
+                ids = list(range(start, end + 1))
+            elif len(argument) == 2:
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            except:
+            else:
                 return
-
+        except:
+            return
+        
         temp_msg = await message.reply("Please wait...")
-
         try:
             messages = await get_messages(client, ids)
         except:
             await message.reply_text("Something went wrong..!")
             return
-
+        
         await temp_msg.delete()
         copied_messages = []
-
         for msg in messages:
             if bool(CUSTOM_CAPTION) and (bool(msg.document) or bool(msg.video)):
                 caption = CUSTOM_CAPTION.format(previouscaption=msg.caption, filename=msg.document.file_name if msg.document else msg.video.file_name)
@@ -205,13 +86,13 @@ async def start_command(client: Client, message: Message):
                 copied_messages.append(f)
             except:
                 pass
-        k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to Pornography  issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
+            
+        k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
         await asyncio.sleep(1800)
         for f in copied_messages:
             await f.delete()
-        await k.edit_text("Your video is successfully deleted!")
+        await k.edit_text("Your video/file is successfully deleted!")
         return
-
     else:
         reply_markup = InlineKeyboardMarkup(
             [
