@@ -11,7 +11,7 @@ OWNER_ID = int(os.environ.get("OWNER_ID", "6249148586"))
 DB_URL = os.environ.get("DB_URL", "mongodb+srv://aduluser:aduluser@cluster0.5rlhjgi.mongodb.net/?retryWrites=true&w=majority")
 DB_NAME = os.environ.get("DB_NAME", "madflixbotz")
 
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001980010837"))
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001799438122"))
 FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "0"))
 FORCE_SUB_CHANNEL2 = int(os.environ.get("FORCE_SUB_CHANNEL2", "0"))
 
