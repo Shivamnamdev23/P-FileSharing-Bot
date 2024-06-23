@@ -2,11 +2,11 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "7016553125:AAGdS8Ntap2zZ9x2sbFge9TxwafZvAydsEk")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6753346291:AAEJN_9htvXIcbU1DlHpSHFDO6asd9furds")
 APP_ID = int(os.environ.get("APP_ID", "27499182"))
 API_HASH = os.environ.get("API_HASH", "9c58142ef6abed28808a50e3e983c39c")
-FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "-1001903429872"))
-OWNER = os.environ.get("OWNER", "") #Owner username
+FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "0"))
+OWNER = os.environ.get("OWNER", "")
 OWNER_ID = int(os.environ.get("OWNER_ID", "6249148586"))
 DB_URL = os.environ.get("DB_URL", "mongodb+srv://aduluser:aduluser@cluster0.5rlhjgi.mongodb.net/?retryWrites=true&w=majority")
 DB_NAME = os.environ.get("DB_NAME", "madflixbotz")
@@ -32,7 +32,7 @@ except ValueError:
 
 FORCE_MSG = os.environ.get("FORCE_SUB_MESSAGE", "Hello {first}\n\n<b>You need to join in my Channel/Group to use me\n\nKindly Please join Channel</b>")
 
-CUSTOM_CAPTION = os.environ.get("CUSTOM_CAPTION", "<b>♻️ Upload By [ @ ]</b>")
+CUSTOM_CAPTION = os.environ.get("CUSTOM_CAPTION", "<b>♻️ Upload By [ @snfilmy ]</b>")
 
 PROTECT_CONTENT = True if os.environ.get('PROTECT_CONTENT', "False") == "True" else False
 
@@ -61,7 +61,7 @@ logging.basicConfig(
 )
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
-SHORT_URL = os.environ.get("SHORT_URL", "https://publicearn.com/") # Must start with "https://" and ends with "/"
+SHORT_URL = os.environ.get("SHORT_URL", "https://publicearn.com/")
 SHORT_API = os.environ.get("SHORT_API", "5b63204f2214329cf36c9e2add4de92d52d88d67")
 
 def LOGGER(name: str) -> logging.Logger:
