@@ -17,7 +17,7 @@ SECONDS = int(os.getenv("SECONDS", "1800"))
 
 FSUB = False
 
-@Bot.on_message(filters.command("start") & filters.private)
+@Client.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     if FSUB:
         try:
@@ -69,24 +69,27 @@ async def start_command(client: Client, message: Message):
         await temp_msg.delete()
         copied_messages = []
         for msg in messages:
-            if bool(CUSTOM_CAPTION) and (bool(msg.document) or bool(msg.video)):
-                caption = CUSTOM_CAPTION.format(previouscaption=msg.caption, filename=msg.document.file_name if msg.document else msg.video.file_name)
-            else:
-                caption = "" if not msg.caption else msg.caption.html
+            # Check if the message contains media with file_id
+            if msg.media and hasattr(msg.media, 'file_id'):
+                file_id = msg.media.file_id
+                if bool(CUSTOM_CAPTION) and (bool(msg.document) or bool(msg.video)):
+                    caption = CUSTOM_CAPTION.format(previouscaption=msg.caption, filename=msg.document.file_name if msg.document else msg.video.file_name)
+                else:
+                    caption = "" if not msg.caption else msg.caption.html
 
-            # Replace 'file_id' with the actual file ID you want to reference
-            join_button = InlineKeyboardButton("Join/Update Channel", callback_data=f"stream#{msg.file_id}")
-            buttons = [[join_button]]
+                # Create inline keyboard button with file_id
+                join_button = InlineKeyboardButton("Join/Update Channel", callback_data=f"stream#{file_id}")
+                buttons = [[join_button]]
 
-            try:
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
-                copied_messages.append(f)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
-                copied_messages.append(f)
-            except Exception as e:
-                print(e)
+                try:
+                    f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
+                    copied_messages.append(f)
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
+                    copied_messages.append(f)
+                except Exception as e:
+                    print(e)
             
         k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
         await asyncio.sleep(1800)
