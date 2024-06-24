@@ -17,7 +17,7 @@ SECONDS = int(os.getenv("SECONDS", "1800"))
 
 FSUB = False
 
-@Bot.on_message(filters.command("start") & filters.private)
+@Client.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     if FSUB:
         try:
@@ -91,11 +91,17 @@ async def start_command(client: Client, message: Message):
                 except Exception as e:
                     print(e)
             
-        k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
-        await asyncio.sleep(1800)
-        for f in copied_messages:
-            await f.delete()
-        await k.edit_text("Your video/file is successfully deleted!")
+        if copied_messages:
+            k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
+            await asyncio.sleep(1800)
+            for f in copied_messages:
+                try:
+                    await f.delete()
+                except Exception as e:
+                    print(f"Error deleting message: {e}")
+            await k.edit_text("Your video/file is successfully deleted!")
+        else:
+            await message.reply_text("No valid files found to send.")
         return
     else:
         reply_markup = InlineKeyboardMarkup(
