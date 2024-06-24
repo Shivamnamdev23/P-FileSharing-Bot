@@ -17,7 +17,7 @@ SECONDS = int(os.getenv("SECONDS", "1800"))
 
 FSUB = False
 
-@Client.on_message(filters.command("start") & filters.private)
+@Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     if FSUB:
         try:
