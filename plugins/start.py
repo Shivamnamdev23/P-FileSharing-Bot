@@ -15,7 +15,7 @@ from datetime import datetime
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "1800"))
 
-FSUB = False
+FSUB = True
 
 @Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
