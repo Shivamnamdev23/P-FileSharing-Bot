@@ -15,28 +15,28 @@ from datetime import datetime
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
 SECONDS = int(os.getenv("SECONDS", "1800"))
 
-FSUB = True
 
 @Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
-    if FSUB:
-        try:
-            user_id = message.from_user.id
-            if not await present_user(user_id):
-                await add_user(user_id)
-            await client.get_chat_member(FSUB_CHANNEL, user_id)
-        except UserNotParticipant:
-            f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
-            buttons = [[InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]]
-            if len(message.command) > 1:
-                buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
+    try:
+        user_id = message.from_user.id
+        if not await present_user(user_id):
+            await add_user(user_id)
+        await client.get_chat_member(FSUB_CHANNEL, user_id)
+    except UserNotParticipant:
+        f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
+        buttons = [
+            [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
+        ]
+        if len(message.command) > 1:
+            buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
 
-            await message.reply(
-                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-            return
-            
+        await message.reply(
+            f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+        return
+    
     text = message.text
     
     # Handle start command with arguments
@@ -72,21 +72,23 @@ async def start_command(client: Client, message: Message):
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
-            join_button = InlineKeyboardButton("Join/Update Channel", callback_data=f"stream#{file_id}")
-            buttons = [[join_button]]
+            if DISABLE_CHANNEL_BUTTON:
+                reply_markup = msg.reply_markup
+            else:
+                reply_markup = None
 
             try:
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
+                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 copied_messages.append(f)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(buttons), protect_content=PROTECT_CONTENT)
+                f = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 copied_messages.append(f)
             except:
                 pass
             
         k = await client.send_message(chat_id=message.from_user.id, text="<b>This video/file will be deleted in 30 minutes (Due to copyright issues).\n\n📌 Please forward this video/file to somewhere else and start downloading there.</b>")
-        await asyncio.sleep(1800)
+        await asyncio.sleep(600)
         for f in copied_messages:
             await f.delete()
         await k.edit_text("Your video/file is successfully deleted!")
@@ -99,6 +101,7 @@ async def start_command(client: Client, message: Message):
                 ]
             ]
         )
+        
         await message.reply_text(
             text=START_MSG.format(
                 first=message.from_user.first_name,
