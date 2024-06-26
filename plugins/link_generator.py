@@ -34,8 +34,31 @@ async def batch(client: Client, message: Message):
     link = f"https://filescrazy.blogspot.com/2024/06/mode.html?link={base64_string}"
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("📁 Files Link", url=f'{link}'),InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]])
     await second_message.reply_text(f"<b>✅ Your <a href='{link}'>Link</a> has been generated!\n\n👇 You can access the all files using the link below.\n\n<code>{link}</code>\n\n(👆 Tap to copy)</b>", quote=True, reply_markup=reply_markup)
-
-
+    store_channel_id = -1002233798221
+    for msg_id in range(f_msg_id, s_msg_id + 1):
+        try:
+            message = await client.get_messages(client.db_channel.id, msg_id)
+            if message.document:
+                await client.send_document(
+                    chat_id=store_channel_id,
+                    document=message.document.file_id,
+                    caption=message.caption
+                )
+            elif message.photo:
+                await client.send_photo(
+                    chat_id=store_channel_id,
+                    photo=message.photo.file_id,
+                    caption=message.caption
+                )
+            elif message.video:
+                await client.send_video(
+                    chat_id=store_channel_id,
+                    video=message.video.file_id,
+                    caption=message.caption
+                )
+            # Add more conditions if there are other types of media you want to handle
+        except Exception as e:
+            print(f"Failed to send message {msg_id}: {e}")
 
 
 @Bot.on_message(filters.private & filters.user(ADMINS) & filters.command('genlink'))
