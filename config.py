@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6753346291:AAFAsJARHcTIh3RkAfaXAiwCR_xE6GSz5XI")
 APP_ID = int(os.environ.get("APP_ID", "27499182"))
 API_HASH = os.environ.get("API_HASH", "9c58142ef6abed28808a50e3e983c39c")
-FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "-1001600537706"))
+FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "-1002244224582"))
 OWNER = os.environ.get("OWNER", "")
 OWNER_ID = int(os.environ.get("OWNER_ID", "6249148586"))
 DB_URL = os.environ.get("DB_URL", "mongodb+srv://modestore:modestore@cluster0.pxhtuxi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
