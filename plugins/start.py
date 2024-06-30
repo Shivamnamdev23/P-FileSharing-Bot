@@ -174,7 +174,7 @@ async def get_users(client: Bot, message: Message):
     users = await full_userbase()
     await msg.edit(f"{len(users)} users are using this bot")
 
-@Bot.on_message(filters.command('set_fsub') & filters.private)
+@Bot.on_message(filters.command('set_fsub') & filters.private & filters.user(ADMINS))
 async def set_fsub(client: Bot, message: Message):
     if len(message.command) > 1:
         channel_id = message.command[1].strip()
@@ -183,7 +183,7 @@ async def set_fsub(client: Bot, message: Message):
     else:
         await message.reply("Please provide the channel ID after the command. Usage: /set_fsub {channel_id}")
 
-@Bot.on_message(filters.command('check_fsub') & filters.private)
+@Bot.on_message(filters.command('check_fsub') & filters.private & filters.user(ADMINS))
 async def check_fsub(client: Bot, message: Message):
     channel_id = await get_fsub_channel_id()
     if channel_id:
@@ -191,12 +191,12 @@ async def check_fsub(client: Bot, message: Message):
     else:
         await message.reply("No FSUB Channel ID is set.")
 
-@Bot.on_message(filters.command('on_fsub') & filters.private)
+@Bot.on_message(filters.command('on_fsub') & filters.private & filters.user(ADMINS))
 async def on_fsub(client: Bot, message: Message):
     await set_fsub_status(True)
     await message.reply("FSUB has been turned ON.")
 
-@Bot.on_message(filters.command('off_fsub') & filters.private)
+@Bot.on_message(filters.command('off_fsub') & filters.private & filters.user(ADMINS))
 async def off_fsub(client: Bot, message: Message):
     await set_fsub_status(False)
     await message.reply("FSUB has been turned OFF.")
