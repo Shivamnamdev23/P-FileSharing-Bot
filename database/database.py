@@ -7,6 +7,7 @@ database = dbclient[DB_NAME]
 user_data = database['users']
 api_data = database['apis']
 site_data = database['sites']
+fsub = database['fsub_channel']
 
 async def present_user(user_id : int):
     found = user_data.find_one({'_id': user_id})
@@ -31,3 +32,16 @@ async def del_user(user_id: int):
 async def get_user_data(user_id: int):
     user_info = user_data.find_one({'_id': user_id})
     return user_info
+
+async def set_fsub_channel_id(channel_id: str):
+    await fsub.update_one(
+        {'_id': 'sub_channel'},
+        {'$set': {'channel_id': channel_id}},
+        upsert=True
+    )
+
+async def get_fsub_channel_id():
+    config = await fsub.find_one({'_id': 'sub_channel'})
+    if config:
+        return config.get('channel_id', "")
+    return ""
