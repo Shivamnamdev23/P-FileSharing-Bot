@@ -1,11 +1,4 @@
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
-
-
-
+from database.database import full_adminbase
 from aiohttp import web
 from plugins import web_server
 import pyromod.listen
@@ -13,7 +6,7 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 import sys
 from datetime import datetime
-from config import API_HASH, APP_ID, LOGGER, TG_BOT_TOKEN, TG_BOT_WORKERS, FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2, CHANNEL_ID, PORT
+from config import API_HASH, APP_ID, LOGGER, TG_BOT_TOKEN, TG_BOT_WORKERS, FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2, CHANNEL_ID, PORT, ADMINS
 
 
 name ="""By @Madflix_Bots From Telegram"""
@@ -62,6 +55,16 @@ class Bot(Client):
             self.LOGGER(__name__).info("\nBot Stopped. Join https://t.me/MadflixBots_Support for support")
             sys.exit()
 
+        initadmin = await full_adminbase()
+        for x in initadmin:
+            if x in ADMINS:
+                continue
+            ADMINS.append(x)
+        await self.send_message(
+            chat_id=OWNER_ID,
+            text="Bot has started! 😉"
+        )
+
         self.set_parse_mode(ParseMode.HTML)
         self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/Madflix_Bots")
         self.LOGGER(__name__).info(f"""
@@ -81,14 +84,3 @@ class Bot(Client):
     async def stop(self, *args):
         await super().stop()
         self.LOGGER(__name__).info("Bot stopped.")
-            
-
-
-
-
-
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
