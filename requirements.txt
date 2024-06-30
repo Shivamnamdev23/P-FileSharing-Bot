@@ -1,5 +1,5 @@
 # --- For-Bot-Working --------- #
-pyrogram
+https://github.com/KurimuzonAkuma/pyrogram/archive/v2.1.21.zip
 TgCrypto
 pyromod==1.5
 
