@@ -200,7 +200,7 @@ async def off_fsub(client: Bot, message: Message):
     await message.reply("FSUB has been turned OFF.")
 
 @Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
-async def send_text(client: Bot, me\]]ssage: Message):
+async def send_text(client: Bot, message: Message):
     if message.reply_to_message:
         query = await full_userbase()
         broadcast_msg = message.reply_to_message
@@ -237,12 +237,14 @@ Successful: <code>{successful}</code>
 Blocked Users: <code>{blocked}</code>
 Deleted Accounts: <code>{deleted}</code>
 Unsuccessful: <code>{unsuccessful}</code></b>"""
+        
         return await pls_wait.edit(status)
+
     else:
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-
+        
 @Bot.on_message(filters.command('add_admin') & filters.private & filters.user(OWNER_ID))
 async def command_add_admin(client: Bot, message: Message):
     while True:
