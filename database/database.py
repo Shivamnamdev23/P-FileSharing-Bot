@@ -76,5 +76,5 @@ async def del_admin(user_id: int):
 
 async def full_adminbase():
     user_docs = admin_data.find()
-    user_ids = [int(doc['_id']) for doc in await user_docs.to_list(length=None)]
+    user_ids = [int(doc['_id']) for doc in list(user_docs)]
     return user_ids
