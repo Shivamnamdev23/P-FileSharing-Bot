@@ -18,7 +18,7 @@ async def add_user(user_id: int):
 
 async def full_userbase():
     user_docs = user_data.find()
-    user_ids = [doc['_id'] for doc in await user_docs.to_list(length=None)]
+    user_ids = [doc['_id'] for doc in list(user_docs)]
     return user_ids
 
 async def del_user(user_id: int):
@@ -32,27 +32,27 @@ async def get_user_data(user_id: int):
 # fsub
 
 async def set_fsub_channel_id(channel_id: str):
-    await fsub.update_one(
+    fsub.update_one(
         {'_id': 'sub_channel'},
         {'$set': {'channel_id': channel_id}},
         upsert=True
     )
 
 async def get_fsub_channel_id():
-    config = await fsub.find_one({'_id': 'sub_channel'})
+    config = fsub.find_one({'_id': 'sub_channel'})
     if config:
         return config.get('channel_id', "")
     return ""
 
 async def set_fsub_status(status: bool):
-    await fsub.update_one(
+    fsub.update_one(
         {'_id': 'fsub_status'},
         {'$set': {'status': status}},
         upsert=True
     )
 
 async def get_fsub_status():
-    config = await fsub.find_one({'_id': 'fsub_status'})
+    config = fsub.find_one({'_id': 'fsub_status'})
     if config:
         return config.get('status', False)
     return False
