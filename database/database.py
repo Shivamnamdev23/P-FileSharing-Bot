@@ -6,9 +6,9 @@ database = dbclient[DB_NAME]
 
 user_data = database['users']
 fsub = database['fsub_channel']
-admin_data= database['admins']
+admin_data = database['admins']
 
-async def present_user(user_id : int):
+async def present_user(user_id: int):
     found = user_data.find_one({'_id': user_id})
     return bool(found)
 
@@ -18,10 +18,7 @@ async def add_user(user_id: int):
 
 async def full_userbase():
     user_docs = user_data.find()
-    user_ids = []
-    for doc in user_docs:
-        user_ids.append(doc['_id'])
-        
+    user_ids = [doc['_id'] for doc in await user_docs.to_list(length=None)]
     return user_ids
 
 async def del_user(user_id: int):
@@ -32,7 +29,7 @@ async def get_user_data(user_id: int):
     user_info = user_data.find_one({'_id': user_id})
     return user_info
 
-#fsub
+# fsub
 
 async def set_fsub_channel_id(channel_id: str):
     await fsub.update_one(
@@ -60,15 +57,14 @@ async def get_fsub_status():
         return config.get('status', False)
     return False
 
-#admins
+# admins
 
 async def present_admin(user_id: int):
     found = await admin_data.find_one({'_id': user_id})
     return bool(found)
 
-
 async def add_admin(user_id: int):
-    user = new_user(user_id)
+    user = {'_id': user_id}
     await admin_data.insert_one(user)
     ADMINS.append(int(user_id))
     return
@@ -80,5 +76,5 @@ async def del_admin(user_id: int):
 
 async def full_adminbase():
     user_docs = admin_data.find()
-    user_ids = [int(doc['_id']) async for doc in user_docs]
+    user_ids = [int(doc['_id']) for doc in await user_docs.to_list(length=None)]
     return user_ids
