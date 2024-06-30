@@ -9,7 +9,7 @@ from bot import Bot
 from pyrogram.errors import UserNotParticipant
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FSUB_CHANNEL, DB_URL
 from helper_func import *
-from database.database import add_user, del_user, full_userbase, present_user
+from database.database import add_user, del_user, full_userbase, present_user, get_fsub_channel_id, set_fsub_channel_id, get_fsub_status, set_fsub_status
 from datetime import datetime
 
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
@@ -18,24 +18,29 @@ SECONDS = int(os.getenv("SECONDS", "1800"))
 
 @Bot.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
-    try:
-        user_id = message.from_user.id
-        if not await present_user(user_id):
-            await add_user(user_id)
-        await client.get_chat_member(FSUB_CHANNEL, user_id)
-    except UserNotParticipant:
-        f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
-        buttons = [
-            [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
-        ]
-        if len(message.command) > 1:
-            buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
+    user_id = message.from_user.id
+    if not await present_user(user_id):
+        await add_user(user_id)
+    
+    fsub_status = await get_fsub_status()
+    FSUB_CHANNEL = await get_fsub_channel_id()
 
-        await message.reply(
-            f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-        return
+    if fsub_status and FSUB_CHANNEL:
+        try:
+            await client.get_chat_member(FSUB_CHANNEL, user_id)
+        except UserNotParticipant:
+            f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
+            buttons = [
+                [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
+            ]
+            if len(message.command) > 1:
+                buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
+
+            await message.reply(
+                f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+            return
     
     text = message.text
     
@@ -129,7 +134,6 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 #=====================================================================================##
 
     
-    
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = [
@@ -170,10 +174,33 @@ async def get_users(client: Bot, message: Message):
     users = await full_userbase()
     await msg.edit(f"{len(users)} users are using this bot")
 
+@Bot.on_message(filters.command('set_fsub') & filters.private)
+async def set_fsub(client: Bot, message: Message):
+    if message.text:
+        channel_id = message.text.strip()
+        await set_fsub_channel_id(channel_id)
+        await message.reply("Channel ID has been added to FSUB.")
 
+@Bot.on_message(filters.command('check_fsub') & filters.private)
+async def check_fsub(client: Bot, message: Message):
+    channel_id = await get_fsub_channel_id()
+    if channel_id:
+        await message.reply(f"The current FSUB Channel ID is: {channel_id}")
+    else:
+        await message.reply("No FSUB Channel ID is set.")
+
+@Bot.on_message(filters.command('on_fsub') & filters.private)
+async def on_fsub(client: Bot, message: Message):
+    await set_fsub_status(True)
+    await message.reply("FSUB has been turned ON.")
+
+@Bot.on_message(filters.command('off_fsub') & filters.private)
+async def off_fsub(client: Bot, message: Message):
+    await set_fsub_status(False)
+    await message.reply("FSUB has been turned OFF.")
 
 @Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
-async def send_text(client: Bot, message: Message):
+async def send_text(client: Bot, me\]]ssage: Message):
     if message.reply_to_message:
         query = await full_userbase()
         broadcast_msg = message.reply_to_message
@@ -210,9 +237,7 @@ Successful: <code>{successful}</code>
 Blocked Users: <code>{blocked}</code>
 Deleted Accounts: <code>{deleted}</code>
 Unsuccessful: <code>{unsuccessful}</code></b>"""
-        
         return await pls_wait.edit(status)
-
     else:
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
