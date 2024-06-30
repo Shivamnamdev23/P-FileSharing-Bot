@@ -7,9 +7,9 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
 from pyrogram.errors import UserNotParticipant
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FSUB_CHANNEL, DB_URL
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FSUB_CHANNEL, DB_URL, OWNER_ID
 from helper_func import *
-from database.database import add_user, del_user, full_userbase, present_user, get_fsub_channel_id, set_fsub_channel_id, get_fsub_status, set_fsub_status
+from database.database import add_user, del_user, full_userbase, present_user, get_fsub_channel_id, set_fsub_channel_id, get_fsub_status, set_fsub_status, add_admin, del_admin, full_adminbase
 from datetime import datetime
 
 # 1 minutes = 60, 2 minutes = 60×2=120, 5 minutes = 60×5=300
@@ -242,3 +242,77 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
+
+@Bot.on_message(filters.command('add_admin') & filters.private & filters.user(OWNER_ID))
+async def command_add_admin(client: Bot, message: Message):
+    while True:
+        try:
+            admin_id = await client.ask(text="Enter admin id 🔢\n /cancel to cancel : ",chat_id = message.from_user.id, timeout=60)
+        except Exception as e:
+            print(e)
+            return
+        if admin_id.text == "/cancel":
+            await admin_id.reply("Cancelled 😉!")
+            return
+        try:
+            await Bot.get_users(user_ids=admin_id.text, self=client)
+            break
+        except:
+            await admin_id.reply("❌ Error 😖\n\nThe admin id is incorrect.", quote = True)
+            continue
+    if not await present_admin(admin_id.text):
+        try:
+            await add_admin(admin_id.text)
+            await message.reply(f"Added admin <code>{admin_id.text}</code> 😼")
+            try:
+                reply_markup = InlineKeyboardMarkup(
+                    [
+                        [InlineKeyboardButton("Join Channel 👆", url=CHANNEL_LINK)]
+                    ]
+                )
+                await client.send_message(
+                    chat_id=admin_id.text,
+                    text=f"You are verified, join the channel for forwarding links for batch commands. 😁",
+                    reply_markup=reply_markup
+                )
+            except:
+                await message.reply("Failed to send invite. Please ensure that they have started the bot. 🥲")
+        except:
+            await message.reply("Failed to add admin. 😔\nSome error occurred.")
+    else:
+        await message.reply("admin already exist. 💀")
+    return
+
+
+@Bot.on_message(filters.command('del_admin') & filters.private  & filters.user(OWNER_ID))
+async def delete_admin_command(client: Bot, message: Message):
+    while True:
+        try:
+            admin_id = await client.ask(text="Enter admin id 🔢\n /cancel to cancel : ",chat_id = message.from_user.id, timeout=60)
+        except:
+            return
+        if admin_id.text == "/cancel":
+            await admin_id.reply("Cancelled 😉!")
+            return
+        try:
+            await Bot.get_users(user_ids=admin_id.text, self=client)
+            break
+        except:
+            await admin_id.reply("❌ Error\n\nThe admin id is incorrect.", quote = True)
+            continue
+    if await present_admin(admin_id.text):
+        try:
+            await del_admin(admin_id.text)
+            await message.reply(f"Admin <code>{admin_id.text}</code> removed successfully 😀")
+        except Exception as e:
+            print(e)
+            await message.reply("Failed to remove admin. 😔\nSome error occurred.")
+    else:
+        await message.reply("admin doesn't exist. 💀")
+    return
+
+@Bot.on_message(filters.command('admins')  & filters.private & filters.private)
+async def admin_list_command(client: Bot, message: Message):
+    admin_list = await full_adminbase()
+    await message.reply(f"Full admin list 📃\n<code>{admin_list}</code>")
+    return
