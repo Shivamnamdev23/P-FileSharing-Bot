@@ -6,7 +6,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
-from pyrogram.errors import UserNotParticipant
+from pyrogram.errors import UserNotParticipant, PeerIdInvalid
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FSUB_CHANNEL, DB_URL, OWNER_ID
 from helper_func import *
 from database.database import add_user, del_user, full_userbase, present_user, get_fsub_channel_id, set_fsub_channel_id, get_fsub_status, set_fsub_status, add_admin, del_admin, full_adminbase
@@ -24,10 +24,16 @@ async def start_command(client: Client, message: Message):
     
     fsub_status = await get_fsub_status()
     fsub_channel = await get_fsub_channel_id()
+    print(f"FSUB Status: {fsub_status}, FSUB Channel ID: {fsub_channel}")
 
     if fsub_status and fsub_channel:
         try:
-            await client.get_chat_member(fsub_channel, user_id)
+            chat_member = await client.get_chat_member(fsub_channel, user_id)
+            print(f"Chat member info: {chat_member}")
+        except PeerIdInvalid:
+            print(f"Invalid Peer ID: {fsub_channel}")
+            await message.reply("The channel ID is invalid or not known yet.")
+            return
         except UserNotParticipant:
             f_link = await client.export_chat_invite_link(fsub_channel)
             buttons = [
