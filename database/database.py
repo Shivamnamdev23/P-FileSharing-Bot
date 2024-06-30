@@ -1,13 +1,12 @@
 import pymongo, os
-from config import DB_URL, DB_NAME
+from config import DB_URL, DB_NAME, ADMINS
 
 dbclient = pymongo.MongoClient(DB_URL)
 database = dbclient[DB_NAME]
 
 user_data = database['users']
-api_data = database['apis']
-site_data = database['sites']
 fsub = database['fsub_channel']
+admin_data= database['admins']
 
 async def present_user(user_id : int):
     found = user_data.find_one({'_id': user_id})
@@ -32,6 +31,8 @@ async def del_user(user_id: int):
 async def get_user_data(user_id: int):
     user_info = user_data.find_one({'_id': user_id})
     return user_info
+
+#fsub
 
 async def set_fsub_channel_id(channel_id: str):
     await fsub.update_one(
@@ -58,3 +59,26 @@ async def get_fsub_status():
     if config:
         return config.get('status', False)
     return False
+
+#admins
+
+async def present_admin(user_id: int):
+    found = await admin_data.find_one({'_id': user_id})
+    return bool(found)
+
+
+async def add_admin(user_id: int):
+    user = new_user(user_id)
+    await admin_data.insert_one(user)
+    ADMINS.append(int(user_id))
+    return
+
+async def del_admin(user_id: int):
+    await admin_data.delete_one({'_id': user_id})
+    ADMINS.remove(int(user_id))
+    return
+
+async def full_adminbase():
+    user_docs = admin_data.find()
+    user_ids = [int(doc['_id']) async for doc in user_docs]
+    return user_ids
