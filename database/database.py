@@ -45,3 +45,16 @@ async def get_fsub_channel_id():
     if config:
         return config.get('channel_id', "")
     return ""
+
+async def set_fsub_status(status: bool):
+    await fsub.update_one(
+        {'_id': 'fsub_status'},
+        {'$set': {'status': status}},
+        upsert=True
+    )
+
+async def get_fsub_status():
+    config = await fsub.find_one({'_id': 'fsub_status'})
+    if config:
+        return config.get('status', False)
+    return False
