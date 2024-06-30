@@ -21,18 +21,15 @@ async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
     if not await present_user(user_id):
         await add_user(user_id)
-    
     fsub_status = await get_fsub_status()
     fsub_channel = await get_fsub_channel_id()
     print(f"FSUB Status: {fsub_status}, FSUB Channel ID: {fsub_channel}")
-
     if fsub_status and fsub_channel:
         try:
             chat_member = await client.get_chat_member(fsub_channel, user_id)
             print(f"Chat member info: {chat_member}")
         except PeerIdInvalid:
             print(f"Invalid Peer ID: {fsub_channel}")
-            await message.reply("The channel ID is invalid or not known yet.")
             return
         except UserNotParticipant:
             f_link = await client.export_chat_invite_link(fsub_channel)
@@ -41,7 +38,6 @@ async def start_command(client: Client, message: Message):
             ]
             if len(message.command) > 1:
                 buttons.append([InlineKeyboardButton("♻️ Try Again ♻️", url=f"https://telegram.me/{client.username}?start={message.command[1]}")])
-
             await message.reply(
                 f"<b> ⚠️ Dear {message.from_user.mention} ❗\n\n🙁 First join our channel then you will get your Video, otherwise you will not get it.\n\nClick join channel button 👇\n\nसबसे पहले हमारे चैनल से जुड़ें फिर आपको आपका वीडियो मिलेगा, चैनल से जुड़ें बटन पर क्लिक करें 👇</b>",
                 reply_markup=InlineKeyboardMarkup(buttons)
@@ -49,8 +45,6 @@ async def start_command(client: Client, message: Message):
             return
     
     text = message.text
-    
-    # Handle start command with arguments
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
