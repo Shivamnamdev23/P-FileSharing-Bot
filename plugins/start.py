@@ -23,13 +23,13 @@ async def start_command(client: Client, message: Message):
         await add_user(user_id)
     
     fsub_status = await get_fsub_status()
-    FSUB_CHANNEL = await get_fsub_channel_id()
+    fsub_channel = await get_fsub_channel_id()
 
-    if fsub_status and FSUB_CHANNEL:
+    if fsub_status and fsub_channel:
         try:
-            await client.get_chat_member(FSUB_CHANNEL, user_id)
+            await client.get_chat_member(fsub_channel, user_id)
         except UserNotParticipant:
-            f_link = await client.export_chat_invite_link(FSUB_CHANNEL)
+            f_link = await client.export_chat_invite_link(fsub_channel)
             buttons = [
                 [InlineKeyboardButton("⛔ Join Channel ⛔", url=f_link)]
             ]
@@ -176,10 +176,12 @@ async def get_users(client: Bot, message: Message):
 
 @Bot.on_message(filters.command('set_fsub') & filters.private)
 async def set_fsub(client: Bot, message: Message):
-    if message.text:
-        channel_id = message.text.strip()
+    if len(message.command) > 1:
+        channel_id = message.command[1].strip()
         await set_fsub_channel_id(channel_id)
         await message.reply("Channel ID has been added to FSUB.")
+    else:
+        await message.reply("Please provide the channel ID after the command. Usage: /set_fsub {channel_id}")
 
 @Bot.on_message(filters.command('check_fsub') & filters.private)
 async def check_fsub(client: Bot, message: Message):
