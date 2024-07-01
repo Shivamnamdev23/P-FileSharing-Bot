@@ -22,7 +22,7 @@ async def channel_post(client: Client, message: Message):
     converted_id = post_message.id * abs(client.db_channel.id)
     string = f"get-{converted_id}"
     base64_string = await encode(string)
-    link = f"https://filescrazy.blogspot.com/2024/06/mode.html?link={base64_string}"
+    link = f"https://filescrazy.blogspot.com/2024/07/files.html?link={base64_string}"
 
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("📁 File Link", url=f'{link}'),InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]])
 
@@ -38,7 +38,7 @@ async def new_post(client: Client, message: Message):
     converted_id = message.id * abs(client.db_channel.id)
     string = f"get-{converted_id}"
     base64_string = await encode(string)
-    link = f"https://filescrazy.blogspot.com/2024/06/mode.html?link={base64_string}"
+    link = f"https://filescrazy.blogspot.com/2024/07/files.html?link={base64_string}"
     caption = f"{message.caption}\n\n✅ Link Here <a href='{link}'>Link</a>" if message.caption else link
     try:
         await message.edit_caption(caption=caption, reply_markup=None)
