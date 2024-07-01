@@ -2,13 +2,13 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6753346291:AAFAsJARHcTIh3RkAfaXAiwCR_xE6GSz5XI")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6530848860:AAH3HpuUmuofZR9HjQlOWP0gjkGUM9RUZUA")
 APP_ID = int(os.environ.get("APP_ID", "27499182"))
 API_HASH = os.environ.get("API_HASH", "9c58142ef6abed28808a50e3e983c39c")
 FSUB_CHANNEL = int(os.environ.get("FSUB_CHANNEL", "-1002244224582"))
 OWNER = os.environ.get("OWNER", "")
 OWNER_ID = int(os.environ.get("OWNER_ID", "6249148586"))
-DB_URL = os.environ.get("DB_URL", "mongodb+srv://modestore:modestore@cluster0.pxhtuxi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DB_URL = os.environ.get("DB_URL", "mongodb+srv://MFileStorebot:MFileStorebot@cluster0.fyjixqx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 DB_NAME = os.environ.get("DB_NAME", "madflixbotz")
 
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002236511323"))
