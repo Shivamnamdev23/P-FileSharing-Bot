@@ -1,12 +1,4 @@
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
-
-
-
-
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bot import Bot
 from pyrogram.types import Message
 from pyrogram import filters
@@ -23,19 +15,14 @@ async def stats(bot: Bot, message: Message):
     time = get_readable_time(delta.seconds)
     await message.reply(BOT_STATS_TEXT.format(uptime=time))
 
-
-
 @Bot.on_message(filters.private & filters.incoming)
-async def useless(_,message: Message):
-    if USER_REPLY_TEXT:
-        await message.reply(USER_REPLY_TEXT)
-
-
-
-
-
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
+async def useless(_, message: Message):
+    reply_markup = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("💢 ᴊᴏɪɴ ɴᴏᴡ 💢", url="https://t.me/+v6h3boTBQXZlYWU1")]
+        ]
+    )
+    await message.reply(
+        "ꜰᴏʀ ɴᴇᴡ ᴍᴏᴠɪᴇꜱ ᴏʀ ᴡᴇʙ ꜱᴇʀɪᴇꜱ, ᴄʟɪᴄᴋ ᴛʜᴇ ᴊᴏɪɴ ɴᴏᴡ ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ.\n\nनई फिल्में या वेब सीरीज के लिए नीचे दिए गए 'Join Now' बटन पर क्लिक करें।",
+        reply_markup=reply_markup
+    )
