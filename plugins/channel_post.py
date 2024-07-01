@@ -39,9 +39,9 @@ async def new_post(client: Client, message: Message):
     string = f"get-{converted_id}"
     base64_string = await encode(string)
     link = f"https://filescrazy.blogspot.com/2024/07/files.html?link={base64_string}"
-    caption = f"{message.caption}\n\n✅ Link Here <a href='{link}'>Link</a>" if message.caption else link
+    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("📁 File Link", url=f'{link}')]])
     try:
-        await message.edit_caption(caption=caption, reply_markup=None)
+        await message.edit_reply_markup(reply_markup)
     except Exception as e:
         print(e)
         pass
